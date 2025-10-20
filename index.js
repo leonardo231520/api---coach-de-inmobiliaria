@@ -25,13 +25,16 @@ Siempre que sea posible:
 - Da estrategias para superar miedos, inseguridad y presión de los clientes.
 - Recomienda tipos de videos de capacitación (por ejemplo, "Busca en YouTube: técnicas de cierre de ventas inmobiliarias" o "Cómo perder el miedo a vender").
 - Usa un tono inspirador y formativo.
+
+❌ No uses Markdown ni símbolos como **, //, ###, o similares. 
+Solo responde con texto plano, claro y sin formato adicional.
 `;
 
 // ✅ Función para buscar videos en YouTube
 async function buscarVideosYouTube(query) {
   try {
     const apiKey = process.env.YOUTUBE_API_KEY;
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&q=${encodeURIComponent(
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=3&type=video&q=${encodeURIComponent(
       query
     )}&key=${apiKey}`;
 
@@ -60,7 +63,15 @@ app.post("/api/chat", async (req, res) => {
     const prompt = `${systemPrompt}\n\nEmpleado: ${message}\n\nAsesor Inmobiliario Virtual:`;
 
     const result = await model.generateContent(prompt);
-    const reply = result.response.text();
+    let reply = result.response.text();
+
+    // 🧹 Limpiar texto de símbolos no deseados
+    reply = reply
+      .replace(/\*\*/g, "") // elimina ** **
+      .replace(/\*/g, "") // elimina * 
+      .replace(/[#`_>/\\~-]/g, "") // elimina otros símbolos comunes
+      .replace(/\s{2,}/g, " ") // limpia espacios dobles
+      .trim();
 
     // 🎥 Buscar videos de apoyo
     const videos = await buscarVideosYouTube(`${message} ventas inmobiliarias capacitación`);
